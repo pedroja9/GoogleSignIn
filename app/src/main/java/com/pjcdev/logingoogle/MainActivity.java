@@ -43,7 +43,7 @@ public class MainActivity extends AppCompatActivity implements
     private SignInButton btnSignIn;
 
     List<String> profile=new ArrayList<>();
-    private MyGoogleApi_Singleton myGoogleApi_singleton;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -69,8 +69,6 @@ public class MainActivity extends AppCompatActivity implements
         btnSignIn.setSize(SignInButton.SIZE_STANDARD);
         btnSignIn.setScopes(gso.getScopeArray());*/
 
-        //Create a new objet to handle in all class
-        myGoogleApi_singleton.getInstance(mGoogleApiClient);
     }
 
 
@@ -78,6 +76,7 @@ public class MainActivity extends AppCompatActivity implements
     {
         Intent signInIntent = Auth.GoogleSignInApi.getSignInIntent(mGoogleApiClient);
         startActivityForResult(signInIntent, RC_SIGN_IN);
+
 
     }
 

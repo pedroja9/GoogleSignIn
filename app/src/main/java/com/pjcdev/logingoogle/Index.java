@@ -1,5 +1,6 @@
 package com.pjcdev.logingoogle;
 
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -18,6 +19,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.google.android.gms.auth.api.Auth;
@@ -33,7 +35,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Index extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener {
+        implements NavigationView.OnNavigationItemSelectedListener, GoogleApiClient.OnConnectionFailedListener {
     private ImageView ivprofile;
     private TextView tvname;
     private TextView tvemail;
@@ -42,11 +44,13 @@ public class Index extends AppCompatActivity
     private String name;
     private String idnumber;
     private String email;
+    private Context context=null;
+
     final List<String> profile = new ArrayList<String>();
     private View headerview;
 
     private GoogleApiClient mGoogleApiClient;
-    private MyGoogleApi_Singleton myGoogleApiSingleton;
+
 
 
     @Override
@@ -104,10 +108,15 @@ public class Index extends AppCompatActivity
         tvemail.setText(email);
         Glide.with(this).load(picprofile).into(ivprofile);
 
-        //get the mgoogleapiclient objet
-        myGoogleApiSingleton=new MyGoogleApi_Singleton();
-        mGoogleApiClient=myGoogleApiSingleton.get_GoogleApiClient();
+        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestEmail()
+                .build();
 
+        mGoogleApiClient = new GoogleApiClient.Builder(this)
+                .enableAutoManage(this, this)
+                .addApi(Auth.GOOGLE_SIGN_IN_API, gso)
+                .build();
+        /*
         if(mGoogleApiClient!=null) {
             if (mGoogleApiClient.isConnected()) {
                 Log.d("MYGAPICLIENT", "Estas conectado");
@@ -121,7 +130,7 @@ public class Index extends AppCompatActivity
         }
      else{
             Log.d("MYGAPICLIENT", "el googleapiclient esta vacio");
-        }
+        }*/
     }
 
     @Override
@@ -175,6 +184,8 @@ public class Index extends AppCompatActivity
         } else if (id == R.id.nav_send) {
 
         }else if (id == R.id.logout) {
+
+           //myGoogleApiSingleton.getInstance(context).Logout();
             signOut();
             goLoginScreen();
         }
@@ -183,6 +194,28 @@ public class Index extends AppCompatActivity
         drawer.closeDrawer(GravityCompat.START);
         return true;
     }
+
+    private void signOut() {
+        if(mGoogleApiClient!=null) {
+            if (mGoogleApiClient.isConnected()) {
+
+                Auth.GoogleSignInApi.revokeAccess(mGoogleApiClient).setResultCallback(new ResultCallback<Status>() {
+                    @Override
+                    public void onResult(@NonNull Status status) {
+                        if (status.isSuccess()) {
+                            Log.d("LOGOUT", "Logout correcto");
+                            goLoginScreen();
+                        } else {
+                            Toast.makeText(getApplicationContext(), "Error al hacer logout", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                });
+            } else {
+                Toast.makeText(getApplicationContext(), "no estas conectado", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
     //method to go to login screen
     private void goLoginScreen() {
         Intent intent=new Intent(this,MainActivity.class);
@@ -190,15 +223,10 @@ public class Index extends AppCompatActivity
         startActivity(intent);
     }
 
-    //method to logout
-    private void signOut()
-    {
-        if (mGoogleApiClient.isConnected()) {
-            Auth.GoogleSignInApi.signOut(mGoogleApiClient);
-            mGoogleApiClient.disconnect();
-        }
+
+    @Override
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
 
     }
-
 
 }
